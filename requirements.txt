@@ -1,0 +1,12 @@
+streamlit
+matplotlib
+pandas
+numpy
+PyPDF2
+langchain
+langgraph
+langchain-groq
+reportlab
+sentence-transformers
+pydantic
+transformers
