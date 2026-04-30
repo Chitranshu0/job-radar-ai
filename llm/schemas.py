@@ -37,3 +37,12 @@ class GraphDataOutput(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
+class JDClassification(BaseModel):
+    is_JD: bool
+    confidence: float = Field(ge=0, le=1)
+
+    class Config:
+        extra = "forbid"
+
