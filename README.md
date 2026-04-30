@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Hiring Intelligence Platform
 
 ## Overview
@@ -206,3 +207,7 @@ streamlit run app.py
 👩‍💻 Author
 
 Anwesha Das
+=======
+# job-radar-ai
+The AI Hiring Intelligence Platform is a resume analysis engine that uses semantic matching and multi-agent LLMs to evaluate resumes against job descriptions. It identifies skill alignments and gaps, providing evidence-backed insights and actionable recommendations to streamline hiring and help candidates improve their profiles
+>>>>>>> 65de38237358d03cafc8252ab8f8deb933bdbf0a
