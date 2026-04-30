@@ -10,3 +10,5 @@ reportlab
 sentence-transformers
 pydantic
 transformers
+fastapi
+uvicorn
