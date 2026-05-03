@@ -204,13 +204,25 @@ function injectFloatingWidget() {
         statusDiv.innerText = "Connecting to AI Backend...";
         
         try {
+            const storageData = await chrome.storage.local.get(['resumeText', 'apiKey']);
+            if (!storageData.resumeText || !storageData.apiKey) {
+                throw new Error("Setup incomplete. Please click the extension icon to set up your profile.");
+            }
+
             const response = await fetch("http://127.0.0.1:8000/api/evaluate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: pageText })
+                body: JSON.stringify({ 
+                    jd_text: pageText,
+                    resume_text: storageData.resumeText,
+                    api_key: storageData.apiKey
+                })
             });
             
-            if (!response.ok) throw new Error("Backend not reachable");
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || "Backend not reachable");
+            }
             
             const data = await response.json();
             
@@ -244,7 +256,7 @@ function injectFloatingWidget() {
             }, 100);
             
         } catch (e) {
-            statusDiv.innerText = "Error: Make sure backend is running on port 8000.";
+            statusDiv.innerText = e.message;
             analyzeBtn.disabled = false;
             analyzeBtn.style.opacity = "1";
         }

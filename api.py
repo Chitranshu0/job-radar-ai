@@ -1,7 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+import os
+import io
+
+from utils.text import extract_text_from_pdf, clean_text
+from graph.pipeline import run_pipeline
+from llm.client import get_llm
 
 app = FastAPI(title="Job Radar AI - Backend API")
 
@@ -14,51 +20,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class JDRequest(BaseModel):
-    text: str
+class EvaluateRequest(BaseModel):
+    jd_text: str
+    resume_text: str
+    api_key: str
 
-@app.post("/api/detect-jd")
-async def detect_jd(request: JDRequest):
-    """
-    This endpoint will use your AI model (e.g. Groq/Llama-3) to detect if the text is a JD.
-    For now, we simulate a fast AI verification response.
-    """
-    text = request.text.lower()
-    
-    # Simulate an AI model analyzing the semantic context of the text
-    has_role = "responsibilities" in text or "what you'll do" in text
-    has_reqs = "requirements" in text or "qualifications" in text
-    has_exp = "experience" in text or "skills" in text
-    
-    is_jd = has_role and has_reqs and has_exp
-    
-    return {"is_JD": is_jd}
+@app.post("/api/parse-resume")
+async def parse_resume(file: UploadFile = File(...)):
+    try:
+        content = await file.read()
+        file_obj = io.BytesIO(content)
+        text = extract_text_from_pdf(file_obj)
+        return {"text": clean_text(text)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error parsing PDF: {str(e)}")
 
 @app.post("/api/evaluate")
-async def evaluate_resume(request: JDRequest):
-    """
-    Evaluates the scraped JD against the user's stored resume using our AI pipeline.
-    Returning mock data for the workshop demonstration.
-    """
-    import random
-    import asyncio
-    
-    # Simulate processing delay
-    await asyncio.sleep(2)
-    
-    score = random.randint(70, 98)
-    
-    if score >= 90:
-        summary = "Excellent match! Your extensive background strongly aligns with the core requirements of this role. Your skills stand out."
-    elif score >= 80:
-        summary = "Great match. You have most of the required skills, particularly in the main technologies. Highlighting your recent projects will help bridge any minor gaps."
-    else:
-        summary = "Good potential. While you meet many baseline requirements, some preferred qualifications are missing. Emphasize your adaptability."
+async def evaluate_resume(request: EvaluateRequest):
+    try:
+        os.environ["GROQ_API_KEY"] = request.api_key
+        # Clear cache so it picks up new API key if it changed
+        get_llm.cache_clear()
         
-    return {
-        "score": score,
-        "summary": summary
-    }
+        state = run_pipeline(jd_text=request.jd_text, resume_text=request.resume_text)
+        
+        if state.get("error"):
+            raise HTTPException(status_code=500, detail=state["error"])
+            
+        return {
+            "score": state.get("overall_score", 0),
+            "summary": state.get("summary", "Analysis complete.")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run("api:app", host="127.0.0.1", port=8000, reload=True)
