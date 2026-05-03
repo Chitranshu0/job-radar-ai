@@ -47,16 +47,27 @@ async def evaluate_resume(request: EvaluateRequest):
         if state.get("error"):
             raise HTTPException(status_code=500, detail=state["error"])
             
+        opt = state.get("optimized_reasoning", {})
+        
+        # Ensure we don't break the extension frontend
+        score = opt.get("overall_match_score", state.get("overall_score", 0))
+        summary = opt.get("executive_summary", state.get("summary", "Analysis complete."))
+        
         return {
-            "score": state.get("overall_score", 0),
-            "summary": state.get("summary", "Analysis complete."),
-            "analytics": {
-                "graph_data": state.get("graph_data", {}),
-                "section_scores": state.get("section_scores", {}),
-                "matched_skills": state.get("matched_skills", []),
-                "missing_skills": state.get("missing_skills", []),
-                "improvement_actions": state.get("improvement_actions", [])
-            }
+            "score": score,
+            "overall_match_score": score,
+            "summary": summary,
+            "fit_category": opt.get("fit_category", ""),
+            "shortlist_potential": opt.get("shortlist_potential", ""),
+            "jd_summary": opt.get("jd_summary", {}),
+            "candidate_summary": opt.get("candidate_summary", {}),
+            "requirement_mapping": opt.get("requirement_mapping", []),
+            "project_alignment": opt.get("project_alignment", []),
+            "gap_analysis": opt.get("gap_analysis", {}),
+            "scores": opt.get("scores", {}),
+            "analytics": opt.get("analytics", {}),
+            "executive_summary": summary,
+            "recommended_actions": opt.get("recommended_actions", [])
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

@@ -1,74 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Job Radar AI - Advanced Analytics</title>
+    <title>Job Radar AI - Intelligence Analytics</title>
     <style>
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px; }
-        .dashboard { max-width: 1000px; margin: 0 auto; }
+        .dashboard { max-width: 1200px; margin: 0 auto; }
         .header { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
-        .header h1 { margin: 0; color: #60a5fa; }
+        .header h1 { margin: 0; color: #60a5fa; font-size: 28px; }
         .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
         
         .score-box { text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .score-box .score { font-size: 54px; font-weight: bold; color: #10b981; text-shadow: 0 2px 10px rgba(16, 185, 129, 0.3); margin-top: 10px;}
+        .fit-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 10px; background: rgba(59, 130, 246, 0.2); color: #60a5fa;}
         
         canvas { max-width: 100%; }
         
         .pill { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 4px; }
         .pill.match { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .pill.miss { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .pill.warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
         
         .improvement-list { padding-left: 20px; }
         .improvement-list li { margin-bottom: 12px; color: #cbd5e1; line-height: 1.5; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 600; }
+        td { color: #e2e8f0; }
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .tag.core { background: #3b82f6; color: white; }
+        .tag.secondary { background: #8b5cf6; color: white; }
+        .tag.optional { background: #64748b; color: white; }
+        
+        .status.full { color: #10b981; font-weight: bold; }
+        .status.partial { color: #f59e0b; font-weight: bold; }
+        .status.miss { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
             <span style="font-size: 32px;">📊</span>
-            <h1>Advanced Candidate Analytics</h1>
+            <h1>Intelligence Engine Analytics</h1>
         </div>
         
         <div class="grid-3">
             <div class="card score-box">
-                <h3 style="margin: 0; color: #94a3b8;">Overall Match Fit</h3>
+                <h3 style="margin: 0; color: #94a3b8;">Overall Match Score</h3>
                 <div class="score" id="overall-score">--</div>
+                <div><span class="fit-badge" id="fit-category">Evaluating...</span></div>
+                <div style="margin-top: 10px; font-size: 13px; color: #94a3b8;" id="shortlist-potential"></div>
             </div>
             
             <div class="card" style="grid-column: span 2;">
-                <h3 style="margin-top: 0; color: #94a3b8;">AI Executive Summary</h3>
+                <h3 style="margin-top: 0; color: #94a3b8;">Executive Summary</h3>
                 <p id="summary-text" style="line-height: 1.6; color: #e2e8f0; font-size: 15px;">Loading analytics...</p>
+                <div style="margin-top: 20px;">
+                    <h4 style="margin: 0 0 10px 0; color: #fbbf24;">Actionable Recommendations</h4>
+                    <ul class="improvement-list" id="improvement-actions" style="margin:0; padding-left: 20px;"></ul>
+                </div>
             </div>
         </div>
         
         <div class="grid-2">
             <div class="card">
-                <h3 style="margin-top: 0; color: #94a3b8;">Category Breakdown</h3>
-                <div style="height: 250px;"><canvas id="categoryChart"></canvas></div>
+                <h3 style="margin-top: 0; color: #94a3b8;">Requirement Coverage</h3>
+                <div style="height: 250px;"><canvas id="coverageChart"></canvas></div>
             </div>
             <div class="card">
-                <h3 style="margin-top: 0; color: #94a3b8;">Score Distribution</h3>
-                <div style="height: 250px;"><canvas id="distributionChart"></canvas></div>
-            </div>
-        </div>
-        
-        <div class="grid-2">
-            <div class="card">
-                <h3 style="margin-top: 0; color: #34d399;">Matched Skills (Transformer Verified)</h3>
-                <div id="matched-skills"></div>
-            </div>
-            <div class="card">
-                <h3 style="margin-top: 0; color: #f87171;">Missing / Gap Skills</h3>
-                <div id="missing-skills"></div>
+                <h3 style="margin-top: 0; color: #94a3b8;">Match Distribution</h3>
+                <div style="height: 250px;"><canvas id="matchDistChart"></canvas></div>
             </div>
         </div>
         
         <div class="card">
-            <h3 style="margin-top: 0; color: #fbbf24;">Recommended Improvement Actions</h3>
-            <ul class="improvement-list" id="improvement-actions">
-            </ul>
+            <h3 style="margin-top: 0; color: #94a3b8;">Requirement Evidence Mapping</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>Importance</th>
+                        <th>Status</th>
+                        <th>Evidence Source</th>
+                    </tr>
+                </thead>
+                <tbody id="mapping-table-body">
+                    <tr><td colspan="4" style="text-align:center;">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="margin-top: 0; color: #f87171;">Critical Gaps (Must Address)</h3>
+                <div id="critical-gaps"></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-top: 0; color: #fbbf24;">Moderate / Minor Gaps</h3>
+                <div id="moderate-gaps"></div>
+            </div>
         </div>
         
     </div>

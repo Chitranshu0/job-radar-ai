@@ -1,159 +1,145 @@
 document.addEventListener("DOMContentLoaded", () => {
-    chrome.storage.local.get(['currentAnalytics', 'resumeText'], (result) => {
-        if (!result.currentAnalytics) {
+    chrome.storage.local.get(['fullData'], (result) => {
+        if (!result.fullData) {
             document.getElementById('summary-text').innerText = "No analytics data found. Please run an analysis first.";
             return;
         }
         
-        const analytics = result.currentAnalytics;
-        const gData = analytics.graph_data || {};
-        const sScores = analytics.section_scores || {};
+        const data = result.fullData;
+        const analytics = data.analytics || {};
+        const gaps = data.gap_analysis || { critical: [], moderate: [], minor: [] };
         
-        // In the background, api.py sets overall_score in the root state. But we only passed analytics data?
-        // Wait, in content.js, we only did `chrome.storage.local.set({ currentAnalytics: data.analytics })`
-        // We can get overall score from data.score if we also stored it, or compute it.
-        // For accuracy, let's just use section_scores to compute a rough average or use a stored score.
-        // Actually, we can update content.js to also save the overall score, but computing is fine if it wasn't saved.
+        // Populate text fields
+        document.getElementById('overall-score').innerText = (data.score || data.overall_match_score || 0) + "%";
+        document.getElementById('fit-category').innerText = data.fit_category || "Unknown Fit";
+        document.getElementById('shortlist-potential').innerText = "Potential: " + (data.shortlist_potential || "N/A");
+        document.getElementById('summary-text').innerText = data.summary || data.executive_summary || "No summary available.";
         
-        let overall = 0;
-        let count = 0;
-        for (const [k, v] of Object.entries(sScores)) {
-            overall += v;
-            count++;
+        // Populate Improvement Actions
+        const impContainer = document.getElementById('improvement-actions');
+        const actions = data.recommended_actions || [];
+        if (actions.length === 0) impContainer.innerHTML = "<li>You're all set! No major improvements needed for this JD.</li>";
+        else {
+            actions.forEach(a => {
+                const li = document.createElement('li');
+                li.innerText = a;
+                impContainer.appendChild(li);
+            });
         }
         
-        // We'll try to fetch score from local storage if available, else fallback to compute.
-        chrome.storage.local.get(['latestScore', 'latestSummary'], (extraData) => {
-            const finalScore = extraData.latestScore || (count > 0 ? Math.round(overall / count) : 0);
-            document.getElementById('overall-score').innerText = finalScore + "%";
-            
-            // Text fields
-            document.getElementById('summary-text').innerText = extraData.latestSummary || "No summary available. Please run the analysis again.";
-            
-            // Populate Skills
-            const matchedContainer = document.getElementById('matched-skills');
-            const matched = analytics.matched_skills || [];
-            if (matched.length === 0) matchedContainer.innerHTML = "<span class='pill miss'>None Found</span>";
-            else {
-                matched.forEach(s => {
-                    const el = document.createElement('span');
-                    el.className = 'pill match';
-                    el.innerText = s;
-                    matchedContainer.appendChild(el);
-                });
-            }
-            
-            const missingContainer = document.getElementById('missing-skills');
-            const missing = analytics.missing_skills || [];
-            if (missing.length === 0) missingContainer.innerHTML = "<span class='pill match'>No Major Gaps!</span>";
-            else {
-                missing.forEach(s => {
-                    const el = document.createElement('span');
-                    el.className = 'pill miss';
-                    el.innerText = s;
-                    missingContainer.appendChild(el);
-                });
-            }
-            
-            // Populate Improvement Actions
-            const impContainer = document.getElementById('improvement-actions');
-            const actions = analytics.improvement_actions || [];
-            if (actions.length === 0) impContainer.innerHTML = "<li>You're all set! No major improvements needed for this JD.</li>";
-            else {
-                actions.forEach(a => {
-                    const li = document.createElement('li');
-                    li.innerText = a;
-                    impContainer.appendChild(li);
-                });
-            }
-            
-            // Charts Setup
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
-            
-            // 1. Radar / Polar Area chart for Category Breakdown
-            const ctxCat = document.getElementById('categoryChart').getContext('2d');
-            const catLabels = Object.keys(sScores).length ? Object.keys(sScores).map(k => k.replace(/_/g, ' ').toUpperCase()) : ['Skills', 'Experience', 'Keywords'];
-            const catData = Object.keys(sScores).length ? Object.values(sScores) : [80, 60, 90];
-            
-            new Chart(ctxCat, {
-                type: 'polarArea',
-                data: {
-                    labels: catLabels,
-                    datasets: [{
-                        label: 'Match Quality',
-                        data: catData,
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.6)',
-                            'rgba(16, 185, 129, 0.6)',
-                            'rgba(245, 158, 11, 0.6)',
-                            'rgba(239, 68, 68, 0.6)',
-                            'rgba(139, 92, 246, 0.6)'
-                        ],
-                        borderColor: '#1e293b',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            ticks: { display: false, max: 100 },
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            angleLines: { color: 'rgba(255,255,255,0.05)' }
-                        }
-                    },
-                    plugins: {
-                        legend: { position: 'right' }
-                    }
-                }
+        // Populate Evidence Mapping Table
+        const mappingTable = document.getElementById('mapping-table-body');
+        const mapping = data.requirement_mapping || [];
+        if (mapping.length > 0) {
+            mappingTable.innerHTML = "";
+            mapping.forEach(req => {
+                const tr = document.createElement('tr');
+                
+                let impClass = 'optional';
+                if (req.importance.toLowerCase().includes('core')) impClass = 'core';
+                else if (req.importance.toLowerCase().includes('secondary')) impClass = 'secondary';
+                
+                let statClass = 'miss';
+                if (req.match_status.toLowerCase().includes('full')) statClass = 'full';
+                else if (req.match_status.toLowerCase().includes('partial')) statClass = 'partial';
+                
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${req.requirement}</td>
+                    <td><span class="tag ${impClass}">${req.importance}</span></td>
+                    <td class="status ${statClass}">${req.match_status}</td>
+                    <td style="font-size: 13px;">${req.evidence}</td>
+                `;
+                mappingTable.appendChild(tr);
             });
-            
-            // 2. Distribution Chart (Bar) for Graph Data
-            const ctxDist = document.getElementById('distributionChart').getContext('2d');
-            let distLabels = [];
-            let distData = [];
-            
-            if (gData.score_distribution && Object.keys(gData.score_distribution).length > 0) {
-                distLabels = Object.keys(gData.score_distribution);
-                distData = Object.values(gData.score_distribution);
-            } else {
-                // Fallback realistic data
-                distLabels = ["Relevance", "Clarity", "Impact", "Keywords"];
-                distData = [finalScore, finalScore > 20 ? finalScore - 15 : 50, finalScore > 10 ? finalScore - 5 : 60, finalScore];
-            }
-            
-            new Chart(ctxDist, {
-                type: 'bar',
-                data: {
-                    labels: distLabels,
-                    datasets: [{
-                        label: 'Evaluation Metric',
-                        data: distData,
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                        borderRadius: 6,
-                        barThickness: 24
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { color: 'rgba(255,255,255,0.05)' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
+        } else {
+            mappingTable.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No mapping data found.</td></tr>";
+        }
+        
+        // Populate Gaps
+        const critContainer = document.getElementById('critical-gaps');
+        if (!gaps.critical || gaps.critical.length === 0) critContainer.innerHTML = "<span class='pill match'>None!</span>";
+        else {
+            gaps.critical.forEach(s => {
+                const el = document.createElement('span');
+                el.className = 'pill miss';
+                el.innerText = s;
+                critContainer.appendChild(el);
             });
+        }
+        
+        const modContainer = document.getElementById('moderate-gaps');
+        const allMod = [...(gaps.moderate || []), ...(gaps.minor || [])];
+        if (allMod.length === 0) modContainer.innerHTML = "<span class='pill match'>None</span>";
+        else {
+            allMod.forEach(s => {
+                const el = document.createElement('span');
+                el.className = 'pill warn';
+                el.innerText = s;
+                modContainer.appendChild(el);
+            });
+        }
+        
+        // Charts Setup
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+        
+        // 1. Requirement Coverage (Polar Area or Bar)
+        const ctxCov = document.getElementById('coverageChart').getContext('2d');
+        const reqCov = analytics.requirement_coverage || { "Core": 80, "Secondary": 60, "Optional": 40 };
+        
+        new Chart(ctxCov, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(reqCov),
+                datasets: [{
+                    label: 'Coverage %',
+                    data: Object.values(reqCov),
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(100, 116, 139, 0.8)'
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+        
+        // 2. Match Distribution Chart (Doughnut)
+        const ctxDist = document.getElementById('matchDistChart').getContext('2d');
+        const matchDistObj = analytics.match_distribution || {"Full": 5, "Partial": 3, "None": 2};
+        
+        new Chart(ctxDist, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(matchDistObj),
+                datasets: [{
+                    data: Object.values(matchDistObj),
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(239, 68, 68, 0.7)'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                },
+                cutout: '70%'
+            }
         });
     });
 });

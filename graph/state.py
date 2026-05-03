@@ -23,3 +23,4 @@ class HiringState(TypedDict, total=False):
     skill_match_score: float
     llm_score: float
     error: Optional[str]
+    optimized_reasoning: Dict[str, Any]

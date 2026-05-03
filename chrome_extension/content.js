@@ -271,6 +271,7 @@ function injectFloatingWidget() {
                 if (data.analytics) {
                     chrome.storage.local.set({ 
                         currentAnalytics: data.analytics,
+                        fullData: data,
                         latestScore: data.score,
                         latestSummary: data.summary
                     });
