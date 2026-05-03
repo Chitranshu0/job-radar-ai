@@ -174,9 +174,22 @@ function injectFloatingWidget() {
                     </div>
                 </div>
                 
-                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; text-align: left; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; text-align: left; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 12px;">
                     <p id="job-radar-summary" style="font-size: 13px; color: #d1d5db; margin: 0; line-height: 1.5;"></p>
                 </div>
+                
+                <button id="job-radar-view-analytics-btn" style="
+                    width: 100%;
+                    padding: 10px;
+                    background: transparent;
+                    color: #60a5fa;
+                    border: 1px solid rgba(59, 130, 246, 0.5);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 13px;
+                    transition: all 0.2s;
+                " onmouseover="this.style.background='rgba(59, 130, 246, 0.1)';" onmouseout="this.style.background='transparent';">View Advanced Analytics</button>
             </div>
         </div>
     `;
@@ -253,6 +266,20 @@ function injectFloatingWidget() {
                 const offset = 250 - (score / 100) * 220; 
                 document.getElementById("job-radar-speedometer").style.strokeDashoffset = offset;
                 document.getElementById("job-radar-summary").innerText = data.summary;
+                
+                // Store analytics and setup button
+                if (data.analytics) {
+                    chrome.storage.local.set({ 
+                        currentAnalytics: data.analytics,
+                        latestScore: data.score,
+                        latestSummary: data.summary
+                    });
+                    document.getElementById("job-radar-view-analytics-btn").addEventListener("click", () => {
+                        chrome.runtime.sendMessage({ action: "openAnalytics" });
+                    });
+                } else {
+                    document.getElementById("job-radar-view-analytics-btn").style.display = "none";
+                }
             }, 100);
             
         } catch (e) {

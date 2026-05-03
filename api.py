@@ -49,7 +49,14 @@ async def evaluate_resume(request: EvaluateRequest):
             
         return {
             "score": state.get("overall_score", 0),
-            "summary": state.get("summary", "Analysis complete.")
+            "summary": state.get("summary", "Analysis complete."),
+            "analytics": {
+                "graph_data": state.get("graph_data", {}),
+                "section_scores": state.get("section_scores", {}),
+                "matched_skills": state.get("matched_skills", []),
+                "missing_skills": state.get("missing_skills", []),
+                "improvement_actions": state.get("improvement_actions", [])
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

@@ -4,3 +4,9 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
   console.log('Job Radar AI extension successfully installed.');
 });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "openAnalytics") {
+        chrome.tabs.create({ url: "analytics.html" });
+    }
+});
