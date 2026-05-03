@@ -82,62 +82,102 @@ function injectFloatingWidget() {
 
     const widget = document.createElement("div");
     widget.id = "job-radar-floating-widget";
+    // Premium Dark Mode Glassmorphism Style
     widget.innerHTML = `
-        <div style="
+        <div id="job-radar-container" style="
             position: fixed;
             top: 20px;
             right: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            padding: 20px;
-            width: 300px;
-            z-index: 2147483647; /* Max z-index to stay on top */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border: 1px solid #e5e7eb;
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset;
+            padding: 24px;
+            width: 340px;
+            z-index: 2147483647;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #f3f4f6;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
         ">
             <button id="job-radar-close-btn" style="
                 position: absolute;
-                top: 10px;
-                right: 15px;
+                top: 16px;
+                right: 16px;
                 background: none;
                 border: none;
-                font-size: 14px;
+                font-size: 16px;
                 cursor: pointer;
                 color: #9ca3af;
-                padding: 0;
-            ">✖</button>
+                padding: 4px;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s, color 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff';" onmouseout="this.style.background='none'; this.style.color='#9ca3af';">✖</button>
             
-            <h3 style="margin-top: 0; color: #111827; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">✨</span> Job Radar AI
-            </h3>
-            
-            <p style="font-size: 13px; color: #4b5563; margin-bottom: 16px; line-height: 1.4;">
-                Job Description detected! Would you like to analyze how well your resume matches this role?
-            </p>
-            
-            <button id="job-radar-analyze-btn" style="
-                width: 100%;
-                padding: 10px;
-                background-color: #2563eb;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: background-color 0.2s;
-            ">Analyze Resume Match</button>
-            
-            <div id="job-radar-status" style="
-                margin-top: 12px; 
-                font-size: 12px; 
-                color: #059669; 
-                display: none;
-                background: #d1fae5;
-                padding: 8px;
-                border-radius: 4px;
-                text-align: center;
-            "></div>
+            <div id="job-radar-initial-view">
+                <h3 style="margin: 0 0 8px 0; color: #fff; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 22px; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));">✨</span> Job Radar AI
+                </h3>
+                
+                <p style="font-size: 14px; color: #d1d5db; margin-bottom: 20px; line-height: 1.5;">
+                    Job Description detected! Want to see how well your resume matches this role?
+                </p>
+                
+                <button id="job-radar-analyze-btn" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: linear-gradient(135deg, #2563eb, #4f46e5);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+                " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(37, 99, 235, 0.6)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(37, 99, 235, 0.4)';">Analyze Resume Match</button>
+                
+                <div id="job-radar-status" style="
+                    margin-top: 16px; 
+                    font-size: 13px; 
+                    color: #60a5fa; 
+                    display: none;
+                    text-align: center;
+                    font-weight: 500;
+                "></div>
+            </div>
+
+            <div id="job-radar-result-view" style="display: none; text-align: center;">
+                <h3 style="margin: 0 0 16px 0; color: #fff; font-size: 16px; font-weight: 600;">Match Score</h3>
+                <div style="position: relative; width: 160px; height: 80px; margin: 0 auto 20px; overflow: hidden;">
+                    <!-- Background arc -->
+                    <svg viewBox="0 0 200 100" style="width: 100%; height: 100%;">
+                        <path d="M 20 90 A 70 70 0 0 1 180 90" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="15" stroke-linecap="round" />
+                        <!-- Foreground arc (animated) -->
+                        <path id="job-radar-speedometer" d="M 20 90 A 70 70 0 0 1 180 90" fill="none" stroke="url(#gradient)" stroke-width="15" stroke-linecap="round" stroke-dasharray="250" stroke-dashoffset="250" style="transition: stroke-dashoffset 1.5s ease-out;" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#ef4444" />
+                                <stop offset="50%" stop-color="#f59e0b" />
+                                <stop offset="100%" stop-color="#10b981" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; text-align: center;">
+                        <span id="job-radar-score-text" style="font-size: 32px; font-weight: 700; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">0</span><span style="font-size: 16px; color: #9ca3af;">%</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; text-align: left; border: 1px solid rgba(255,255,255,0.05);">
+                    <p id="job-radar-summary" style="font-size: 13px; color: #d1d5db; margin: 0; line-height: 1.5;"></p>
+                </div>
+            </div>
         </div>
     `;
 
@@ -150,10 +190,8 @@ function injectFloatingWidget() {
 
     // Analyze button logic
     const analyzeBtn = document.getElementById("job-radar-analyze-btn");
-    analyzeBtn.addEventListener("mouseover", () => { analyzeBtn.style.backgroundColor = "#1d4ed8"; });
-    analyzeBtn.addEventListener("mouseout", () => { analyzeBtn.style.backgroundColor = "#2563eb"; });
     
-    analyzeBtn.addEventListener("click", () => {
+    analyzeBtn.addEventListener("click", async () => {
         const statusDiv = document.getElementById("job-radar-status");
         statusDiv.style.display = "block";
         statusDiv.innerText = "Extracting JD text...";
@@ -162,12 +200,66 @@ function injectFloatingWidget() {
         
         // Extract page text
         const pageText = document.body.innerText;
-        console.log("Job Radar Extracted Text:", pageText.substring(0, 300) + "...");
         
-        // Simulate sending to backend
-        setTimeout(() => {
-            statusDiv.innerText = "Connecting to Python Backend...";
-        }, 1000);
+        statusDiv.innerText = "Connecting to AI Backend...";
+        
+        try {
+            const storageData = await chrome.storage.local.get(['resumeText', 'apiKey']);
+            if (!storageData.resumeText || !storageData.apiKey) {
+                throw new Error("Setup incomplete. Please click the extension icon to set up your profile.");
+            }
+
+            const response = await fetch("http://127.0.0.1:8000/api/evaluate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    jd_text: pageText,
+                    resume_text: storageData.resumeText,
+                    api_key: storageData.apiKey
+                })
+            });
+            
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || "Backend not reachable");
+            }
+            
+            const data = await response.json();
+            
+            // Switch view
+            document.getElementById("job-radar-initial-view").style.display = "none";
+            document.getElementById("job-radar-result-view").style.display = "block";
+            
+            // Animate speedometer
+            setTimeout(() => {
+                const score = data.score;
+                
+                // Count up animation for score text
+                let currentScore = 0;
+                const scoreInterval = setInterval(() => {
+                    if (currentScore >= score) {
+                        clearInterval(scoreInterval);
+                        document.getElementById("job-radar-score-text").innerText = score;
+                    } else {
+                        currentScore += 2;
+                        if (currentScore > score) currentScore = score;
+                        document.getElementById("job-radar-score-text").innerText = currentScore;
+                    }
+                }, 20);
+                
+                // Stroke offset animation
+                // The arc length for 160 units (180 to 20, r=70) is roughly 220
+                // stroke-dasharray is 250. Full arc is offset 250 - 220 = 30.
+                const offset = 250 - (score / 100) * 220; 
+                document.getElementById("job-radar-speedometer").style.strokeDashoffset = offset;
+                document.getElementById("job-radar-summary").innerText = data.summary;
+            }, 100);
+            
+        } catch (e) {
+            statusDiv.innerText = e.message;
+            analyzeBtn.disabled = false;
+            analyzeBtn.style.opacity = "1";
+        }
     });
 }
 

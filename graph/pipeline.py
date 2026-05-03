@@ -44,9 +44,10 @@ def build_graph():
     return workflow.compile()
 
 
-def run_pipeline(resume_file, jd_text):
+def run_pipeline(resume_file=None, jd_text="", resume_text=None):
     graph = build_graph()
     return graph.invoke({
         "resume_file": resume_file,
+        "resume_text": resume_text,
         "jd_text": jd_text,
     })

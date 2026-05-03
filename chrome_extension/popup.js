@@ -3,29 +3,28 @@ document.getElementById('analyzeBtn').addEventListener('click', async () => {
     
     const resultDiv = document.getElementById('result');
     resultDiv.style.display = 'block';
-    resultDiv.innerText = "Analyzing page content...";
+    resultDiv.innerText = "Analyzing page...";
 
     chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        function: extractPageText,
+        function: () => {
+            if (typeof injectFloatingWidget === 'function') {
+                injectFloatingWidget();
+                return true;
+            }
+            return false;
+        },
     }, (injectionResults) => {
         if (!injectionResults || !injectionResults[0]) {
-            resultDiv.innerText = "Failed to extract text from page.";
+            resultDiv.innerText = "Failed to communicate with page.";
             return;
         }
         
-        const pageText = injectionResults[0].result;
-        
-        // TODO: Send 'pageText' to your Python FastAPI/Flask backend
-        // For example:
-        // fetch('http://127.0.0.1:8000/analyze', { ... })
-        
-        resultDiv.innerText = "Text extracted! Ready to send to Python backend for JD Classification.";
-        console.log("Extracted text (first 200 chars):", pageText.substring(0, 200) + "...");
+        if (injectionResults[0].result) {
+            resultDiv.innerText = "Dashboard opened on the page!";
+            setTimeout(() => window.close(), 1500);
+        } else {
+            resultDiv.innerText = "Content script not ready. Reload page.";
+        }
     });
 });
-
-// This function gets executed in the context of the active webpage
-function extractPageText() {
-    return document.body.innerText;
-}

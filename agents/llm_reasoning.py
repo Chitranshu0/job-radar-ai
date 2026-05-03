@@ -32,6 +32,10 @@ def _match_skills(resume_skills, jd_skills):
 def _reason_with_llm(state, matched_skills, missing_skills):
     template = """
 Validate fit and produce concise recruiter output. Use only provided context. No invented evidence.
+You must provide a VERY SHORT summary (max 3-4 sentences) that includes:
+1. JD summary
+2. Resume match insights
+3. Analyzer result (e.g. "Strong Match", "Needs Work")
 
 Relevant resume context:
 {resume_context}

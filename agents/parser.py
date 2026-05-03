@@ -12,7 +12,10 @@ def parse_resume_tool(resume_file) -> str:
 
 def parser_agent_fn(state):
     try:
-        resume_text = clean_text(extract_text_from_pdf(state["resume_file"]))
+        if state.get("resume_text"):
+            resume_text = clean_text(state["resume_text"])
+        else:
+            resume_text = clean_text(extract_text_from_pdf(state["resume_file"]))
     except Exception as exc:
         return {"error": f"Could not parse resume: {exc}"}
 

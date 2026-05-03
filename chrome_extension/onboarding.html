@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Radar AI Setup</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; display: flex; justify-content: center; }
+        .container { background: #1e293b; padding: 40px; border-radius: 16px; width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #3b82f6; margin-top: 0; }
+        .step { margin-bottom: 30px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input[type="file"], input[type="text"], input[type="password"] { width: 95%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 15px; }
+        button { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: background 0.2s; }
+        button:hover { background: #2563eb; }
+        .success { color: #10b981; display: none; margin-top: 15px; text-align: center; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Job Radar AI Setup</h1>
+        <p style="color: #cbd5e1; margin-bottom: 30px;">Let's get your profile ready so we can automatically analyze jobs for you.</p>
+        
+        <div class="step">
+            <label>1. Upload your Resume (PDF)</label>
+            <input type="file" id="resumeFile" accept="application/pdf">
+        </div>
+        
+        <div class="step">
+            <label>2. Upload Cover Letter (Optional, PDF)</label>
+            <input type="file" id="coverLetterFile" accept="application/pdf">
+        </div>
+
+        <div class="step">
+            <label>3. Enter Groq API Key</label>
+            <input type="password" id="apiKey" placeholder="gsk_...">
+            <small style="color: #94a3b8; display: block; margin-top: -10px;">Used to power the AI matching locally.</small>
+        </div>
+
+        <button id="saveBtn">Save & Initialize</button>
+        <div id="status" class="success">Setup complete! You can close this tab.</div>
+    </div>
+    <script src="onboarding.js"></script>
+</body>
+</html>
