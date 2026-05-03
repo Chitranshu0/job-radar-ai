@@ -34,5 +34,31 @@ async def detect_jd(request: JDRequest):
     
     return {"is_JD": is_jd}
 
+@app.post("/api/evaluate")
+async def evaluate_resume(request: JDRequest):
+    """
+    Evaluates the scraped JD against the user's stored resume using our AI pipeline.
+    Returning mock data for the workshop demonstration.
+    """
+    import random
+    import asyncio
+    
+    # Simulate processing delay
+    await asyncio.sleep(2)
+    
+    score = random.randint(70, 98)
+    
+    if score >= 90:
+        summary = "Excellent match! Your extensive background strongly aligns with the core requirements of this role. Your skills stand out."
+    elif score >= 80:
+        summary = "Great match. You have most of the required skills, particularly in the main technologies. Highlighting your recent projects will help bridge any minor gaps."
+    else:
+        summary = "Good potential. While you meet many baseline requirements, some preferred qualifications are missing. Emphasize your adaptability."
+        
+    return {
+        "score": score,
+        "summary": summary
+    }
+
 if __name__ == "__main__":
     uvicorn.run("api:app", host="127.0.0.1", port=8000, reload=True)
