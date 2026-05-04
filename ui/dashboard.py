@@ -46,7 +46,7 @@ def render_dashboard(state):
     category_scores = graph_data.get("category_scores") or state.get("section_scores", {})
     gap_analysis = graph_data.get("gap_analysis", {})
 
-    st.markdown("### 📊 Analysis Dashboard")
+    st.markdown("### Analysis Dashboard")
     st.markdown("")
 
     row1_col1, row1_col2 = st.columns(2, gap="medium")

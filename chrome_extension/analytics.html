@@ -1,82 +1,301 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Radar AI - Intelligence Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px; }
-        .dashboard { max-width: 1200px; margin: 0 auto; }
-        .header { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
-        .header h1 { margin: 0; color: #60a5fa; font-size: 28px; }
-        .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+        :root {
+            --bg-color: #050505;
+            --card-bg: rgba(20, 20, 20, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body { 
+            font-family: 'Outfit', system-ui, sans-serif; 
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            background-attachment: fixed;
+            color: var(--text-primary); 
+            margin: 0; 
+            padding: 40px; 
+            min-height: 100vh;
+        }
+
+        .dashboard { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header { 
+            margin-bottom: 40px; 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-icon {
+            width: 32px;
+            height: 32px;
+            color: var(--accent-primary);
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .header h1 { 
+            margin: 0; 
+            color: var(--text-primary); 
+            font-size: 32px; 
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .card { 
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px; 
+            padding: 28px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2); 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
         
-        .score-box { text-align: center; display: flex; flex-direction: column; justify-content: center; }
-        .score-box .score { font-size: 54px; font-weight: bold; color: #10b981; text-shadow: 0 2px 10px rgba(16, 185, 129, 0.3); margin-top: 10px;}
-        .fit-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 10px; background: rgba(59, 130, 246, 0.2); color: #60a5fa;}
+        .score-box { 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+            background: linear-gradient(145deg, rgba(30,41,59,0.7) 0%, rgba(15,23,42,0.8) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .score-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+            opacity: 0.5;
+        }
+
+        .score-box .score { 
+            font-size: 64px; 
+            font-weight: 700; 
+            color: var(--success); 
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); 
+            margin: 16px 0;
+            line-height: 1;
+        }
+
+        .fit-badge { 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 20px; 
+            border-radius: 30px; 
+            font-weight: 600; 
+            font-size: 15px; 
+            background: rgba(59, 130, 246, 0.1); 
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(4px);
+        }
         
         canvas { max-width: 100%; }
         
-        .pill { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 4px; }
-        .pill.match { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .pill.miss { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .pill.warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        h3 {
+            margin-top: 0; 
+            color: var(--text-primary); 
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        .pill { 
+            display: inline-block; 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            font-weight: 500; 
+            margin: 4px; 
+            transition: all 0.2s ease;
+        }
+        .pill:hover { filter: brightness(1.1); }
+        .pill.match { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .pill.miss { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .pill.warn { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
         
-        .improvement-list { padding-left: 20px; }
-        .improvement-list li { margin-bottom: 12px; color: #cbd5e1; line-height: 1.5; }
+        .improvement-list { 
+            padding-left: 0; 
+            list-style: none;
+        }
+        .improvement-list li { 
+            margin-bottom: 16px; 
+            color: var(--text-secondary); 
+            line-height: 1.6; 
+            position: relative;
+            padding-left: 28px;
+            font-size: 15px;
+        }
+        .improvement-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+            font-weight: bold;
+        }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-        th { color: #94a3b8; font-weight: 600; }
-        td { color: #e2e8f0; }
-        .tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-        .tag.core { background: #3b82f6; color: white; }
-        .tag.secondary { background: #8b5cf6; color: white; }
-        .tag.optional { background: #64748b; color: white; }
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0;
+            margin-top: 20px; 
+            font-size: 14px; 
+        }
+        th, td { 
+            padding: 16px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--card-border); 
+        }
+        th { 
+            color: var(--text-secondary); 
+            font-weight: 500; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+        td { color: var(--text-primary); }
+        tr:last-child td { border-bottom: none; }
         
-        .status.full { color: #10b981; font-weight: bold; }
-        .status.partial { color: #f59e0b; font-weight: bold; }
-        .status.miss { color: #ef4444; font-weight: bold; }
+        tr { transition: background-color 0.2s ease; }
+        tr:hover td { background-color: rgba(255,255,255,0.02); }
+
+        .tag { 
+            padding: 6px 10px; 
+            border-radius: 6px; 
+            font-size: 12px; 
+            font-weight: 500; 
+            display: inline-block;
+        }
+        .tag.core { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .tag.secondary { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .tag.optional { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+        
+        .status.full { color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .status.partial { color: var(--warning); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .status.miss { color: var(--danger); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+        .status.full::before { content: '●'; font-size: 10px; }
+        .status.partial::before { content: '◐'; font-size: 12px; }
+        .status.miss::before { content: '○'; font-size: 12px; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Glowing text effects */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+        .text-glow-warning {
+            color: var(--warning);
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+        .text-glow-danger {
+            color: var(--danger);
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
-            <span style="font-size: 32px;">📊</span>
+            <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             <h1>Intelligence Engine Analytics</h1>
         </div>
         
         <div class="grid-3">
             <div class="card score-box">
-                <h3 style="margin: 0; color: #94a3b8;">Overall Match Score</h3>
+                <h3 style="color: var(--text-secondary); margin-bottom: 8px; justify-content: center;">Overall Match Score</h3>
                 <div class="score" id="overall-score">--</div>
                 <div><span class="fit-badge" id="fit-category">Evaluating...</span></div>
-                <div style="margin-top: 10px; font-size: 13px; color: #94a3b8;" id="shortlist-potential"></div>
+                <div style="margin-top: 16px; font-size: 14px; color: var(--text-secondary); font-weight: 500;" id="shortlist-potential"></div>
             </div>
             
             <div class="card" style="grid-column: span 2;">
-                <h3 style="margin-top: 0; color: #94a3b8;">Executive Summary</h3>
-                <p id="summary-text" style="line-height: 1.6; color: #e2e8f0; font-size: 15px;">Loading analytics...</p>
-                <div style="margin-top: 20px;">
-                    <h4 style="margin: 0 0 10px 0; color: #fbbf24;">Actionable Recommendations</h4>
-                    <ul class="improvement-list" id="improvement-actions" style="margin:0; padding-left: 20px;"></ul>
+                <h3 style="color: var(--text-primary); margin-bottom: 16px;">
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Executive Summary
+                </h3>
+                <p id="summary-text" style="line-height: 1.7; color: var(--text-secondary); font-size: 16px; margin-bottom: 24px;">Loading analytics...</p>
+                <div>
+                    <h4 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;" class="text-glow-warning">Actionable Recommendations</h4>
+                    <ul class="improvement-list" id="improvement-actions"></ul>
                 </div>
             </div>
         </div>
         
         <div class="grid-2">
             <div class="card">
-                <h3 style="margin-top: 0; color: #94a3b8;">Requirement Coverage</h3>
-                <div style="height: 250px;"><canvas id="coverageChart"></canvas></div>
+                <h3 style="margin-bottom: 24px;">
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    Requirement Coverage
+                </h3>
+                <div style="height: 280px; position: relative;"><canvas id="coverageChart"></canvas></div>
             </div>
             <div class="card">
-                <h3 style="margin-top: 0; color: #94a3b8;">Match Distribution</h3>
-                <div style="height: 250px;"><canvas id="matchDistChart"></canvas></div>
+                <h3 style="margin-bottom: 24px;">
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Match Distribution
+                </h3>
+                <div style="height: 280px; position: relative;"><canvas id="matchDistChart"></canvas></div>
             </div>
         </div>
         
-        <div class="card">
-            <h3 style="margin-top: 0; color: #94a3b8;">Requirement Evidence Mapping</h3>
+        <div class="card" style="overflow-x: auto;">
+            <h3 style="margin-bottom: 8px;">
+                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                Requirement Evidence Mapping
+            </h3>
             <table>
                 <thead>
                     <tr>
@@ -87,18 +306,24 @@
                     </tr>
                 </thead>
                 <tbody id="mapping-table-body">
-                    <tr><td colspan="4" style="text-align:center;">Loading data...</td></tr>
+                    <tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--text-secondary);">Loading data...</td></tr>
                 </tbody>
             </table>
         </div>
         
         <div class="grid-2">
-            <div class="card">
-                <h3 style="margin-top: 0; color: #f87171;">Critical Gaps (Must Address)</h3>
+            <div class="card" style="border-top: 3px solid rgba(239, 68, 68, 0.5);">
+                <h3 class="text-glow-danger" style="margin-bottom: 20px;">
+                    <svg class="card-icon" style="color: var(--danger)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Critical Gaps (Must Address)
+                </h3>
                 <div id="critical-gaps"></div>
             </div>
-            <div class="card">
-                <h3 style="margin-top: 0; color: #fbbf24;">Moderate / Minor Gaps</h3>
+            <div class="card" style="border-top: 3px solid rgba(245, 158, 11, 0.5);">
+                <h3 class="text-glow-warning" style="margin-bottom: 20px;">
+                    <svg class="card-icon" style="color: var(--warning)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Moderate / Minor Gaps
+                </h3>
                 <div id="moderate-gaps"></div>
             </div>
         </div>
