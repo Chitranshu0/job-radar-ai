@@ -6,7 +6,7 @@ from ui.dashboard import render_dashboard, render_hero, render_insights
 
 st.set_page_config(
     page_title="AI Hiring Intelligence Platform",
-    page_icon="🤖",
+    page_icon="=",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -35,7 +35,7 @@ st.markdown(
 
 def main():
     # Header section
-    st.markdown("## 🤖 AI Hiring Intelligence Platform")
+    st.markdown("## AI Hiring Intelligence Platform")
     st.markdown("*Fast, accurate resume analysis with evidence-backed scoring*")
     st.markdown("")
 
@@ -52,21 +52,21 @@ def main():
             jd_text = st.text_area("Paste JD", height=160, label_visibility="collapsed")
 
     st.markdown("")
-    analyze_button = st.button("🚀 Analyze Candidate", use_container_width=True, type="primary")
+    analyze_button = st.button("Analyze Candidate", use_container_width=True, type="primary")
 
     if not analyze_button:
         return
 
     if not resume_file:
-        st.error("📄 Please upload a resume PDF")
+        st.error("Please upload a resume PDF")
         return
 
     if not jd_text:
-        st.error("📝 Please paste a job description")
+        st.error("Please paste a job description")
         return
 
     # Analysis phase
-    with st.spinner("⚙️ Running AI analysis..."):
+    with st.spinner("Running AI analysis..."):
         state = run_pipeline(resume_file, jd_text)
 
     if state.get("error"):
@@ -97,7 +97,7 @@ def main():
     st.markdown("")
     st.markdown(
         "<div style='text-align: center; color: #95a5a6; font-size: 0.9rem; padding: 1rem;'>"
-        "✨ Powered by LangGraph & AI Intelligence"
+        "Powered by LangGraph & AI Intelligence"
         "</div>",
         unsafe_allow_html=True,
     )

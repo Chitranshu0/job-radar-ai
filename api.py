@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 import os
@@ -53,22 +54,43 @@ async def evaluate_resume(request: EvaluateRequest):
         score = opt.get("overall_match_score", state.get("overall_score", 0))
         summary = opt.get("executive_summary", state.get("summary", "Analysis complete."))
         
-        return {
+        # Format the output data strictly to meet requirements
+        data = {
             "score": score,
+            "match_score": score,
             "overall_match_score": score,
             "summary": summary,
-            "fit_category": opt.get("fit_category", ""),
-            "shortlist_potential": opt.get("shortlist_potential", ""),
+            "fit_category": opt.get("fit_category", "Unknown"),
+            "shortlist_potential": opt.get("shortlist_potential", "Unknown"),
             "jd_summary": opt.get("jd_summary", {}),
             "candidate_summary": opt.get("candidate_summary", {}),
             "requirement_mapping": opt.get("requirement_mapping", []),
-            "project_alignment": opt.get("project_alignment", []),
+            "match_distribution": opt.get("match_distribution", {"core": 0, "secondary": 0, "optional": 0}),
             "gap_analysis": opt.get("gap_analysis", {}),
-            "scores": opt.get("scores", {}),
             "analytics": opt.get("analytics", {}),
             "executive_summary": summary,
             "recommended_actions": opt.get("recommended_actions", [])
         }
+        
+        # Validation Layer
+        if not data["requirement_mapping"] or len(data["requirement_mapping"]) == 0:
+            data["requirement_mapping"] = [
+                {
+                    "requirement": "Data Unavailable",
+                    "importance": "Optional",
+                    "score": 0,
+                    "status": "No Data",
+                    "evidence": "No relevant experience found.",
+                    "source": "None",
+                    "confidence": 0
+                }
+            ]
+            
+        if not data["match_distribution"] or "core" not in data["match_distribution"]:
+            data["match_distribution"] = {"core": 0, "secondary": 0, "optional": 0}
+            
+        # Enforce clean UTF-8
+        return JSONResponse(content=data, headers={"Content-Type": "application/json; charset=utf-8"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 

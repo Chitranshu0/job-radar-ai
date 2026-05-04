@@ -4,7 +4,7 @@ from sentence_transformers import util
 from llm.client import invoke_structured
 from llm.schemas import (
     IntelligenceEngineOutput, JDSummary, CandidateSummary, 
-    GapAnalysis, Scores, AnalyticsData
+    GapAnalysis, AnalyticsData, MatchDistribution, Graphs, ScoreBreakdown
 )
 from utils.models import get_embedding_model
 
@@ -35,9 +35,10 @@ def _match_skills(resume_skills, jd_skills):
 def _reason_with_llm(state, matched_skills, missing_skills):
     template = """
 You are an AI-powered Recruitment Intelligence Engine designed to evaluate candidate-job fit with explainability, evidence, and recruiter-level reasoning.
+Return clean plain ASCII text without any emojis or special UTF-8 characters like sparkles.
 
 Your goal is to produce a structured, evidence-backed decision analysis.
-🔴 CORE PRINCIPLE: EVIDENCE-FIRST ANALYSIS
+CORE PRINCIPLE: EVIDENCE-FIRST ANALYSIS
 Every score, insight, or conclusion MUST be backed by an explicit JD requirement and explicit evidence from candidate profile or clearly identified absence. Do NOT hallucinate. Do NOT assume.
 
 ### STEP 1: EXTRACT JD INTELLIGENCE
@@ -46,38 +47,38 @@ Extract Core Requirements, Secondary Requirements, Optional/Nice-to-have from th
 ### STEP 2: EXTRACT CANDIDATE INTELLIGENCE
 Extract Skills, Projects, Tools, Evidence of real-world usage from Resume/CL.
 
-### STEP 3: REQUIREMENT → EVIDENCE MAPPING (CRITICAL)
-Create a structured mapping for each JD requirement:
-- Requirement Name
-- Importance Level (Core/Secondary/Optional)
-- Match Status (Full Match/Partial Match/No Match)
-- Evidence Source
+### STEP 3: REQUIREMENT MAPPING (STRICT)
+For each requirement, provide:
+- requirement: name of the skill/tool
+- importance: Core | Secondary | Optional
+- score: 0 to 100
+- status: Strong | Partial | Weak
+- evidence: extracted supporting text. If no match, state "No relevant experience found".
+- source: Resume | Project | Experience | Cover Letter. If no match, state "None".
+- confidence: 0 to 100
 
-### STEP 4: PROJECT / EXPERIENCE ALIGNMENT
-Classify alignment of projects/experience: Strongly Aligned, Moderately Aligned, Weak/Not Relevant.
+### STEP 4: GAP ANALYSIS (STRUCTURED)
+Identify Critical, Moderate, and Minor gaps separately. NEVER say "No gaps" unless ALL core + secondary are fully matched. Ensure no duplication.
 
-### STEP 5: GAP ANALYSIS (MANDATORY)
-Identify Critical, Moderate, Minor gaps. NEVER say "No gaps" unless ALL core + secondary are fully matched with evidence.
+### STEP 5: MATCH DISTRIBUTION & SCORING BREAKDOWN
+Calculate overall scores and distribution for:
+- match_distribution (core, secondary, optional averages)
+- Score breakdown (skills, experience, projects, overall)
+- Component percentages (skill_match_percentage, experience_match_percentage, project_alignment_score)
 
-### STEP 6: SCORING LOGIC (EXPLAINABLE)
-Provide scores based on Skill Coverage, Experience Depth, Project Alignment, Semantic Match, Overall Match (balanced).
+### STEP 6: ANALYTICS DATA FOR GRAPHS (CRITICAL)
+Generate graph-ready structures:
+- Skills graph (name, jd_required, candidate)
+- Section contribution (section, impact)
 
-### STEP 7: SELECTION LIKELIHOOD (REALISTIC)
+### STEP 7: SELECTION LIKELIHOOD
 Classify: High Shortlist Potential, Moderate Potential, Low Potential based on skill/experience and gap severity.
 
-### STEP 8: EXECUTIVE SUMMARY (RECRUITER STYLE)
-Write a concise, honest summary: Key strengths, weaknesses, overall fit.
+### STEP 8: EXECUTIVE SUMMARY (OPTIMIZED)
+Write a precise 2-3 line summary reflecting actual score and gaps.
 
 ### STEP 9: ACTIONABLE IMPROVEMENTS
 Suggest missing skills to learn, project ideas, resume improvements.
-
-### STEP 10: ANALYTICS DATA FOR VISUALIZATION (IMPORTANT)
-Return structured data:
-1. Requirement Coverage (e.g. "core": 0.8)
-2. Match Distribution (e.g. "full": 5)
-3. Project Alignment Breakdown (e.g. "strong": 2)
-4. Experience Depth Indicators (e.g. "real_usage": 3)
-5. Gap Severity Count (e.g. "critical": 1)
 
 Relevant resume context:
 {resume_context}
@@ -94,9 +95,6 @@ Matched Skills (Embedding verified):
 Missing Skills (Embedding verified):
 {missing_skills}
 
-Evidence Mapping:
-{evidence_mapping}
-
 Semantic score: {semantic_score}
 
 {format_instructions}
@@ -111,13 +109,18 @@ Semantic score: {semantic_score}
             overall_match_score=int(state.get("semantic_score", 50)),
             fit_category="Moderate Fit",
             shortlist_potential="Moderate Potential",
+            match_distribution=MatchDistribution(core=0, secondary=0, optional=0),
             jd_summary=JDSummary(),
             candidate_summary=CandidateSummary(),
             requirement_mapping=[],
-            project_alignment=[],
             gap_analysis=GapAnalysis(moderate=missing_skills[:3]),
-            scores=Scores(skill_coverage=50.0, experience_depth=50.0, project_alignment=50.0, semantic_match=50.0),
-            analytics=AnalyticsData(),
+            analytics=AnalyticsData(
+                skill_match_percentage=50,
+                experience_match_percentage=50,
+                project_alignment_score=50,
+                graphs=Graphs(),
+                score_breakdown=ScoreBreakdown(skills=50, experience=50, projects=50, overall=50)
+            ),
             executive_summary="Candidate shows potential but lacks some verified key skills.",
             recommended_actions=["Highlight specific project outcomes", "Acquire missing core skills"]
         ),
@@ -126,7 +129,6 @@ Semantic score: {semantic_score}
         extracted_skills=state.get("extracted_skills", {}),
         matched_skills=matched_skills,
         missing_skills=missing_skills,
-        evidence_mapping=state.get("evidence_mapping", [])[:5],
         semantic_score=state.get("semantic_score", 0.0),
     )
 

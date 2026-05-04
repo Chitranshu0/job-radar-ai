@@ -36,23 +36,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 const tr = document.createElement('tr');
                 
                 let impClass = 'optional';
-                if (req.importance.toLowerCase().includes('core')) impClass = 'core';
-                else if (req.importance.toLowerCase().includes('secondary')) impClass = 'secondary';
+                if ((req.importance || '').toLowerCase().includes('core')) impClass = 'core';
+                else if ((req.importance || '').toLowerCase().includes('secondary')) impClass = 'secondary';
                 
                 let statClass = 'miss';
-                if (req.match_status.toLowerCase().includes('full')) statClass = 'full';
-                else if (req.match_status.toLowerCase().includes('partial')) statClass = 'partial';
+                if ((req.status || '').toLowerCase().includes('strong') || (req.status || '').toLowerCase().includes('full')) statClass = 'full';
+                else if ((req.status || '').toLowerCase().includes('partial')) statClass = 'partial';
                 
                 tr.innerHTML = `
-                    <td style="font-weight: 500;">${req.requirement}</td>
-                    <td><span class="tag ${impClass}">${req.importance}</span></td>
-                    <td class="status ${statClass}">${req.match_status}</td>
-                    <td style="font-size: 13px;">${req.evidence}</td>
+                    <td style="font-weight: 500;">${req.requirement || 'Unknown'}</td>
+                    <td><span class="tag ${impClass}">${req.importance || 'Optional'}</span></td>
+                    <td class="status ${statClass}">${req.status || 'No Data'}</td>
+                    <td style="font-size: 13px;">${req.evidence || 'No mapping data available'}</td>
                 `;
                 mappingTable.appendChild(tr);
             });
         } else {
-            mappingTable.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No mapping data found.</td></tr>";
+            mappingTable.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No mapping data available.</td></tr>";
+            // Fallback alert as requested
+            console.log("No mapping data available");
         }
         
         // Populate Gaps
@@ -115,18 +117,18 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // 2. Match Distribution Chart (Doughnut)
         const ctxDist = document.getElementById('matchDistChart').getContext('2d');
-        const matchDistObj = analytics.match_distribution || {"Full": 5, "Partial": 3, "None": 2};
+        const matchDistObj = data.match_distribution || {"core": 0, "secondary": 0, "optional": 0};
         
         new Chart(ctxDist, {
             type: 'doughnut',
             data: {
-                labels: Object.keys(matchDistObj),
+                labels: ['Core', 'Secondary', 'Optional'],
                 datasets: [{
-                    data: Object.values(matchDistObj),
+                    data: [matchDistObj.core || 0, matchDistObj.secondary || 0, matchDistObj.optional || 0],
                     backgroundColor: [
-                        'rgba(16, 185, 129, 0.7)',
-                        'rgba(245, 158, 11, 0.7)',
-                        'rgba(239, 68, 68, 0.7)'
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(100, 116, 139, 0.7)'
                     ],
                     borderWidth: 0,
                     hoverOffset: 4

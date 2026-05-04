@@ -122,7 +122,7 @@ function injectFloatingWidget() {
             
             <div id="job-radar-initial-view">
                 <h3 style="margin: 0 0 8px 0; color: #fff; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 22px; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));">✨</span> Job Radar AI
+                    <svg style="width: 22px; height: 22px; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Job Radar AI
                 </h3>
                 
                 <p style="font-size: 14px; color: #d1d5db; margin-bottom: 20px; line-height: 1.5;">
@@ -237,8 +237,8 @@ function injectFloatingWidget() {
                 throw new Error(errText || "Backend not reachable");
             }
             
-            const data = await response.json();
-            
+            const text = await response.text();
+            const data = JSON.parse(text);
             // Switch view
             document.getElementById("job-radar-initial-view").style.display = "none";
             document.getElementById("job-radar-result-view").style.display = "block";
